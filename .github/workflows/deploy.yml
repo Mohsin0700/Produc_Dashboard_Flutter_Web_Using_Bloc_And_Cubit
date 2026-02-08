@@ -1,8 +1,8 @@
-name: Flutter Web Deploy
+name: Deploy Flutter Web
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   workflow_dispatch:
 
 permissions:
@@ -10,44 +10,32 @@ permissions:
   pages: write
   id-token: write
 
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
       
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          flutter-version: '3.24.0'
       
       - name: Install dependencies
         run: flutter pub get
       
-      - name: Build Web
+      - name: Build web
         run: flutter build web --release --base-href "/Product_Dashboard_Flutter_Web/"
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './build/web'
-
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    
-    runs-on: ubuntu-latest
-    needs: build
-    
-    steps:
+          path: 'build/web'
+      
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v4
